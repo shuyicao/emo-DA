@@ -1,23 +1,21 @@
 library('pcalg')
 
 #read data
-dd <- read.csv("C:/Users/shuyi/Desktop/New folder1/New folder/pred.csv")
-an <- read.csv("C:/Users/shuyi/Desktop/New folder1/New folder/annotated.csv")
+dd <- read.csv("pred.csv")
+an <- read.csv("annotated.csv")
 
 #select features to be fed into algorithms
-dd <- subset(dd, select = c('session_id','speaker_id','emo_indx','swda_indx','prev_swda_indx',
+dd <- subset(dd, select = c('emo_indx','swda_indx','prev_swda_indx',
                             'next_swda_indx','prev_emo_indx','next_emo_indx'))
-#cast speaker_id to numerical 
-#data$speaker_id <- as.numeric(data$speaker_id)
 
-an <- subset(an, select = c('session_id','speaker_id','emo_indx','swda_indx','prev_swda_indx',
+
+an <- subset(an, select = c('emo_indx','swda_indx','prev_swda_indx',
                             'next_swda_indx','prev_emo_indx','next_emo_indx'))
 
 
 #combine two dataframes
 new <- rbind(an, dd)
-#cast speaker_id to numerical 
-new$speaker_id <- as.numeric(new$speaker_id)
+
 
 #FCI 
 V1 <- colnames(new)
