@@ -1,31 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
+#import libraries
 import networkx as nx
 import cdt
 
 from cdt.data import load_dataset
 import pandas as pd
 import random
-#import pypeR as pr
 from rpy2.robjects.packages import importr
 from matplotlib import pyplot as plt
 import rpy2.robjects as robjects
 import math
 
 #import algorithms
-
 from cdt.causality.graph import GIES
 from cdt.causality.graph import MMPC
 
 #indenpendence test 
 from scipy import stats
-
-
-# In[2]:
 
 
 #import required R packages
@@ -35,24 +28,17 @@ importr('RCIT')
 importr('bnlearn')
 
 
-# In[3]:
-
-
 #read three dataframes
 
 #current emo with current da
-trans_curr = pd.read_csv(r'C:\Users\shuyi\Desktop\trans_curr.csv', encoding='unicode_escape')
+trans_curr = pd.read_csv(r'trans_curr.csv', encoding='unicode_escape')
 
 #prev emo with current da
-trans_prev = pd.read_csv(r'C:\Users\shuyi\Desktop\trans_prev.csv', encoding='unicode_escape')
+trans_prev = pd.read_csv(r'trans_prev.csv', encoding='unicode_escape')
 
 #next emo with current da
-trans_next = pd.read_csv(r'C:\Users\shuyi\Desktop\trans_next.csv', encoding='unicode_escape')
+trans_next = pd.read_csv(r'trans_next.csv', encoding='unicode_escape')
 
-trans_prev.head()
-
-
-# In[4]:
 
 
 #add prefix to emotion of prev and next dataframe 
@@ -63,8 +49,6 @@ trans_prev.rename(columns = dict(prev_names), inplace=True)
 next_names = [(i,'next_'+i) for i in trans_next.iloc[:, :8].columns.values]
 trans_next.rename(columns = dict(next_names), inplace=True)
 
-
-# In[6]:
 
 
 #segment data to 1 emo with all da and remove column that are not related 
@@ -91,9 +75,6 @@ def input_data(emo, data):
             binary_output.drop(i, axis=1, inplace=True)
     
     return binary_output
-
-
-# In[14]:
 
 
 #define function to run GIES where input data is numerical
@@ -129,7 +110,7 @@ def cause_effect(data, emo, alg):
         if i[1] == 0:
             output.remove_node(i[0])
 
-    #To view the graph created, run the below commands:
+    #To view the graph created
     nx.draw_networkx(output, font_size=8)
     plt.show()
     
@@ -142,18 +123,14 @@ def cause_effect(data, emo, alg):
         fisher = stats.fisher_exact(crosstab)[1]
         dependency.append(fisher)
         
-    # Print output results : 
+
     causation = pd.DataFrame(list(output.edges), columns=['Cause', 'Effect'])
     causation['dependency'] = dependency
     #sort dataframe based on dependencies
     print(causation.sort_values(by=['dependency'], ascending=True))
-        
-    #print(causation)
-    #print(output.edges)
-    #print(nx.adj_matrix(output))
-    
     
     return causation
+
 
 
 #define function to run MMPC where input data is string
@@ -166,7 +143,7 @@ def cause_effect_str(data, emo, alg):
 
     obj= alg()
 
-    output = obj.predict(emo_data2)    #No graph provided as an argument
+    output = obj.predict(emo_data2)    
     
     emo_n = ['no_emo', 'anger','disgust','fear','happiness','sadness','surprise', 'emo_null']
     da_n = ['Statement_non_opinion','Backchannel','Statement_opinion','Uninterpretable',
@@ -180,6 +157,7 @@ def cause_effect_str(data, emo, alg):
       'third_party_talk','Offers_Options_Commits','Maybe_Accept_part','Downplayer',
       'Self_talk','Tag_Question','Declarative_Wh_Question','Apology','Thanking']
     
+    #remove unnecessary edges
     for edge in list(output.edges):
         if edge[0] in emo_n and edge[1] in emo_n:
             output.remove_edge(edge[0],edge[1])
@@ -191,7 +169,7 @@ def cause_effect_str(data, emo, alg):
         if i[1] == 0:
             output.remove_node(i[0])
 
-    #To view the graph created, run the below commands:
+    #To view the graph created
     nx.draw_networkx(output, font_size=8)
     plt.show()
     
@@ -204,30 +182,22 @@ def cause_effect_str(data, emo, alg):
         fisher = stats.fisher_exact(crosstab)[1]
         dependency.append(fisher)
         
-    # Print output results : 
+
     causation = pd.DataFrame(list(output.edges), columns=['Cause', 'Effect'])
     causation['dependency'] = dependency
     #sort dataframe based on dependencies
     print(causation.sort_values(by=['dependency'], ascending=True))
-        
-
     
     return causation
 
 
 # # Current emo vs. current DA
 
-# In[7]:
-
-
 #for iterate through each type of emo
 emo_list = ['anger','disgust','fear','happiness','sadness','surprise']
 
 
 # ### Greedy Interventional Equivalence Search
-
-# In[37]:
-
 
 random.seed(123)
 for emo in emo_list:
@@ -237,28 +207,20 @@ for emo in emo_list:
 
 # ### Max-Min Parents-Children
 
-# In[8]:
-
-
 random.seed(123)
 for emo in emo_list:
     print('current ' + emo)
     cause_effect_str(trans_curr, emo, MMPC)
 
 
+    
 # # Previous emotion vs. current DA
-
-# In[8]:
-
 
 #for iterate through each type of emo
 prev_emo_list = ['prev_anger','prev_disgust','prev_fear','prev_happiness','prev_sadness','prev_surprise']
 
 
 # ### Greedy Interventional Equivalence Search
-
-# In[15]:
-
 
 random.seed(123)
 for emo in prev_emo_list:
@@ -268,60 +230,9 @@ for emo in prev_emo_list:
 
 # ### Max-Min Parents-Children 
 
-# In[11]:
-
-
 random.seed(123)
 for emo in prev_emo_list:
     print('previous utterance emotion is  ' + emo)
     cause_effect_str(trans_prev, emo, MMPC)
-
-
-# # Next emotion vs. current DA
-
-# In[12]:
-
-
-#for iterate through each type of emo
-next_emo_list = ['next_anger','next_disgust','next_fear','next_happiness','next_sadness','next_surprise']
-
-
-# ### Greedy Interventional Equivalence Search
-
-# In[13]:
-
-
-random.seed(123)
-for emo in next_emo_list:
-    print('next utterance emotion is ' + emo)
-    cause_effect(trans_next, emo, GIES)
-
-
-# ### Max-Min Parents-Children 
-
-# In[14]:
-
-
-random.seed(123)
-for emo in next_emo_list:
-    print('next utterance emotion is  ' + emo)
-    cause_effect_str(trans_next, emo, MMPC)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
 
 
